@@ -10,10 +10,9 @@ Modifications Summary:
    c. Introduced a consistent delay of 30 seconds between reading and sending each set of temperatures to the queues, as specified in the assignment.
 3. Removed redundant code sections and imports to streamline the file.
 
-
 Author: Kim Leach
 Date: 09/23/2023
-
+Edited: 09/29/2023
 """
 
 # Import necessary libraries
@@ -44,6 +43,9 @@ def send_message(host: str, queue_name: str, message: str):
         queue_name (str): the name of the queue
         message (str): the message to be sent to the queue
     """
+    # Check if the message is empty, if so return without sending
+    if not message.strip():
+        return
 
     try:
         # create a blocking connection to the RabbitMQ server
@@ -51,15 +53,11 @@ def send_message(host: str, queue_name: str, message: str):
         # use the connection to create a communication channel
         ch = conn.channel()
         # use the channel to declare a durable queue
-        # a durable queue will survive a RabbitMQ server restart
-        # and help ensure messages are processed in order
-        # messages will not be deleted until the consumer acknowledges
         ch.queue_declare(queue=queue_name, durable=True)
         # use the channel to publish a message to the queue
-        # every message passes through an exchange
         ch.basic_publish(exchange="", routing_key=queue_name, body=message)
         # print a message to the console for the user
-        print(f" [x] Sent {message}")
+        print(f" [x] Sent {message} to {queue_name} queue")
     except pika.exceptions.AMQPConnectionError as e:
         print(f"Error: Connection to RabbitMQ server failed: {e}")
         sys.exit(1)
@@ -88,4 +86,4 @@ if __name__ == "__main__":
         # Delay for 30 seconds between readings as specified in the assignment
         time.sleep(30)
         
-print("All temperature readings from the CSV have been sent to the RabbitMQ queues!")
+    print("All temperature readings from the CSV have been sent to the RabbitMQ queues!")
