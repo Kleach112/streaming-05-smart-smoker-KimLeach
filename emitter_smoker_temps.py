@@ -63,18 +63,22 @@ if __name__ == "__main__":
             food_a_temp = row[2]
             food_b_temp = row[3]
             
-            # Combine datetime and temperature into the desired format
-            message_smoker = f"{datetime_str},{smoker_temp}"
-            message_food_a = f"{datetime_str},{food_a_temp}"
-            message_food_b = f"{datetime_str},{food_b_temp}"
+            # Check if the temperature values for Food A and Food B are not empty
+            if food_a_temp:
+                message_food_a = f"{datetime_str},{food_a_temp}"
+                readings.append(("02-food-A", message_food_a))
             
-            readings.append((message_smoker, message_food_a, message_food_b))
+            if food_b_temp:
+                message_food_b = f"{datetime_str},{food_b_temp}"
+                readings.append(("03-food-B", message_food_b))
+            
+            # Always send the Smoker temperature message
+            message_smoker = f"{datetime_str},{smoker_temp}"
+            readings.append(("01-smoker", message_smoker))
 
     # Loop through the readings and send them to the respective queues with a delay of 30 seconds
-    for smoker_temp, food_a_temp, food_b_temp in readings:
-        send_message("localhost", "01-smoker", smoker_temp)
-        send_message("localhost", "02-food-A", food_a_temp)
-        send_message("localhost", "03-food-B", food_b_temp)
+    for queue_name, message in readings:
+        send_message("localhost", queue_name, message)
         
         # Delay for 30 seconds between readings as specified in the assignment
         time.sleep(30)
