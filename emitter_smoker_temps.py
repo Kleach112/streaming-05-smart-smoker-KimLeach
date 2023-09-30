@@ -1,20 +1,3 @@
-"""
-Module 5 - Smart Smoker Emitter
-
-Modifications Summary:
-----------------------
-1. Updated the CSV file reference to point to 'smoker-temps.csv' instead of 'tasks.csv'.
-2. Modified the main execution block to:
-   a. Read temperature readings from the CSV file, specifically extracting smoker temperature, Food A temperature, and Food B temperature.
-   b. Loop through these readings and send them to their respective RabbitMQ queues, namely "01-smoker", "02-food-A", and "03-food-B".
-   c. Introduced a consistent delay of 30 seconds between reading and sending each set of temperatures to the queues, as specified in the assignment.
-3. Removed redundant code sections and imports to streamline the file.
-
-Author: Kim Leach
-Date: 09/23/2023
-Edited: 09/29/2023
-"""
-
 # Import necessary libraries
 import pika
 import sys
@@ -75,7 +58,17 @@ if __name__ == "__main__":
         reader = csv.reader(file)
         next(reader)  # skip the header
         for row in reader:
-            readings.append((row[1], row[2], row[3]))  # Extract smoker, Food A, and Food B temperatures
+            datetime_str = row[0]
+            smoker_temp = row[1]
+            food_a_temp = row[2]
+            food_b_temp = row[3]
+            
+            # Combine datetime and temperature into the desired format
+            message_smoker = f"{datetime_str},{smoker_temp}"
+            message_food_a = f"{datetime_str},{food_a_temp}"
+            message_food_b = f"{datetime_str},{food_b_temp}"
+            
+            readings.append((message_smoker, message_food_a, message_food_b))
 
     # Loop through the readings and send them to the respective queues with a delay of 30 seconds
     for smoker_temp, food_a_temp, food_b_temp in readings:
